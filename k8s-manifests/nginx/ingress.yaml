@@ -1,0 +1,31 @@
+# This ingress uses nip.io for free domain mapping
+# nip.io automatically resolves <anything>.<ip>.nip.io to <ip>
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/tags: Environment=dev,Application=nginx
+    # Note: For production, add SSL certificate:
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:region:account:certificate/cert-id
+    # alb.ingress.kubernetes.io/ssl-redirect: '443'
+spec:
+  rules:
+  # This will be updated dynamically to use the ALB IP with nip.io
+  # Format: nginx.<ALB_IP>.nip.io
+  - host: nginx.placeholder.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
